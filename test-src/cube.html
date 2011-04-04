@@ -1,0 +1,101 @@
+<html>
+<head>
+<script type="text/javascript" src="../lib/sylvester.js"></script>
+<script type="text/javascript" src="../src/fatstone.js"></script>
+<script type="text/javascript" src="../lib/glUtils.js"></script>
+<script type="text/javascript" src="data.js"></script>
+
+<script id="shader-fs" type="x-shader/x-fragment">
+  #ifdef GL_ES
+  precision highp float;
+  #endif
+  #pragma debug(on)
+
+
+  varying vec2 vTextureCoord;
+  varying vec3 vLightWeighting;
+
+  uniform sampler2D uSampler;
+  uniform bool uUseTexture;
+
+  varying vec4 vColor;
+
+  void main(void) {
+    vec4 fragColor;
+    if (uUseTexture) {
+        fragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+    }else{
+        fragColor = vColor;
+    }
+    gl_FragColor = vec4(fragColor.rgb * vLightWeighting, fragColor.a);
+  }
+</script>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+  #pragma debug(on)
+
+  attribute vec3 aVertexPosition;
+  attribute vec3 aVertexNormal;
+  attribute vec2 aTextureCoord;
+  attribute vec4 aVertexColor;
+
+  uniform mat4 uMVMatrix;
+  uniform mat4 uPMatrix;
+  uniform mat4 uNMatrix;
+
+  uniform vec3 uAmbientColor;
+
+  uniform vec3 uLightingDirection;
+  uniform vec3 uDirectionalColor;
+
+  uniform bool uUseLighting;
+
+  varying vec2 vTextureCoord;
+  varying vec3 vLightWeighting;
+  varying vec4 vColor;
+
+  void main(void) {
+    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+    vTextureCoord = aTextureCoord;
+    vColor = aVertexColor;
+
+    if (!uUseLighting) {
+      vLightWeighting = vec3(1.0, 1.0, 1.0);
+    } else {
+      vec4 transformedNormal = uNMatrix * vec4(aVertexNormal, 1.0);
+      float directionalLightWeighting = max(dot(transformedNormal.xyz, uLightingDirection), 0.0);
+      vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
+    }
+  }
+</script>
+<script language="javascript">
+    var simpleCubeCoordinate =[0.0, 0.0, -20.0];
+    
+    var engine;
+    var lighting;
+    var rotater1;
+    
+    function init3D(){
+        engine = new YCEngine3D("canvas");
+        engine.enableGlobalLighting(true);
+        
+        cubeModel = engine.create3DModel();
+        cubeModel.setVertexMatrix(simpleCubeVertex)
+        .setColorMatrix(simpleCubeColors)
+        .setIndexMatrix(simpleCubeIndices)
+        .setCoordinate(simpleCubeCoordinate);
+    }
+    function draw3D(){
+        engine.drawScene();
+    }
+    
+
+
+</script>
+</head>
+
+<body onload="init3D();draw3D()">
+<canvas id="canvas" style="border:none;background-color:#000" width="600" height=400></canvas>
+
+</body>
+</html>

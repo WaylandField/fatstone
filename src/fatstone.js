@@ -134,8 +134,14 @@ YCEngine3D.prototype = {
             }
         }
     },
+    drawTextureScene : function(){
+        this.__loadTextureImages();
+     },
     __getCurrentCount : function(){
-    	return this.counter.count * this.refreshRate;
+    	 if(this.counter&&this.counter.count!=null){
+	    	return this.counter.count * this.refreshRate;
+    	 }
+    	 return null;
     },
 /** ********************private method********************* */
     _const : function(id, config){
@@ -162,9 +168,6 @@ YCEngine3D.prototype = {
         this.perspective = config&&config.perspective?config.perspective:[45, this.glHandler.viewportWidth/this.glHandler.viewportHeight, 5.1,100.0];
         
 
-    },
-    drawTextureScene : function(){
-       this.__loadTextureImages();
     },
     _initiate : function(){
         this.__setupPerspective(this.perspective);
@@ -285,6 +288,9 @@ YC3DModel.prototype = {
         return true;
     },
     iterater : function(currentCount){
+    	if(currentCount==null){
+    		return;
+    	}
 		this.passed = currentCount - this.lastCount;
 		this.lastCount = currentCount;
     }

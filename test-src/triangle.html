@@ -1,0 +1,215 @@
+<html>
+<head>
+<script type="text/javascript" src="sylvester.js"></script>
+<script type="text/javascript" src="handler.js"></script>
+<script type="text/javascript" src="glUtils.js"></script>
+<script type="text/javascript" src="data.js"></script>
+<script type="text/javascript" src="macbook.js"></script>
+<script type="text/javascript" src="log4js.js"></script>
+
+<script id="shader-fs" type="x-shader/x-fragment">
+  #ifdef GL_ES
+  precision highp float;
+  #endif
+  #pragma debug(on)
+
+
+  varying vec2 vTextureCoord;
+  varying vec3 vLightWeighting;
+
+  uniform sampler2D uSampler;
+  uniform bool uUseTexture;
+
+  varying vec4 vColor;
+
+  void main(void) {
+    vec4 fragColor;
+    if (uUseTexture) {
+        fragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+    }else{
+        fragColor = vColor;
+    }
+    gl_FragColor = vec4(fragColor.rgb * vLightWeighting, fragColor.a);
+  }
+</script>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+  #pragma debug(on)
+
+  attribute vec3 aVertexPosition;
+  attribute vec3 aVertexNormal;
+  attribute vec2 aTextureCoord;
+  attribute vec4 aVertexColor;
+
+  uniform mat4 uMVMatrix;
+  uniform mat4 uPMatrix;
+  uniform mat4 uNMatrix;
+
+  uniform vec3 uAmbientColor;
+
+  uniform vec3 uLightingDirection;
+  uniform vec3 uDirectionalColor;
+
+  uniform bool uUseLighting;
+
+  varying vec2 vTextureCoord;
+  varying vec3 vLightWeighting;
+  varying vec4 vColor;
+
+  void main(void) {
+    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+    vTextureCoord = aTextureCoord;
+    vColor = aVertexColor;
+
+    if (!uUseLighting) {
+      vLightWeighting = vec3(1.0, 1.0, 1.0);
+    } else {
+      vec4 transformedNormal = uNMatrix * vec4(aVertexNormal, 1.0);
+      float directionalLightWeighting = max(dot(transformedNormal.xyz, uLightingDirection), 0.0);
+      vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
+    }
+  }
+</script>
+<script language="javascript">
+    var simpleCubeCoordinate =[0.0, 0.0, -20.0];
+    var triangleCoordinate =[3.0, 3.0, -20.0];
+    var textureCubeCoordinate =[0.0, 4.0, -20.0];
+    
+    var engine;
+    var lighting;
+    var rotater1;
+    
+    function init3D(){
+        engine = new YCEngine3D("canvas");
+        engine.enableGlobalTexture(true);
+        engine.enableGlobalLighting(true);
+        engine.enableAnimation(true);
+        
+        lighting = engine.createLighting([1.0,0.0,1.0],[1.0,1.0,1.0],[1.0,0.0,0.0]);
+        lighting1 = engine.createLighting([1.0,0.0,0.0],[1.0,0.0,0.0],[0.0,0.0,1.0]);
+        lighting.setDefault(true);
+        rotater1 = engine.createRotater(10,[0.0,0.0,1]);
+        texture1 = engine.createTexture("glass.gif");
+
+        animatorz = engine.createAnimator([0.0, 0.0, 0.001]);
+        animatorx = engine.createAnimator([0.002, 0.0, 0.0]);
+        animatory = engine.createAnimator([0.0, -0.001, 0.0]);
+
+        triangleModel = engine.create3DModel();
+        triangleModel.setVertexMatrix(triangleMesh)
+        .setColorMatrix(triangleColor)
+        .setLighting(lighting)
+        .setCoordinate(triangleCoordinate)
+        .setUseLighting(true)
+        .setRotater(rotater1);
+
+        cubeModel = engine.create3DModel();
+        cubeModel.setVertexMatrix(simpleCubeVertex)
+        .setColorMatrix(simpleCubeColors)
+        .setIndexMatrix(simpleCubeIndices)
+        .setCoordinate(simpleCubeCoordinate)
+        .setLighting(lighting)
+        .setUseLighting(true)
+        .setAnimator(animatory)
+        .setRotater(rotater1);
+        
+        textCubeModel = engine.create3DModel();
+        textCubeModel.setVertexMatrix(cubeMetrix)
+        .setIndexMatrix(cubeVertexIndices)
+        .setNormalMatrix(cubeVertexNormals)
+        .setTextureMatrix(cubeTexture)
+        .setCoordinate(textureCubeCoordinate)
+        .setTexture(texture1)
+        .setLighting(lighting1)
+        .setUseLighting(true)
+        .setUseTexture(true)
+        .setAnimator(animatorx)
+        .setRotater(rotater1);
+        
+        monkeyModel = engine.create3DModel();
+        monkeyModel.setVertexMatrix(monkeyVertex)
+        .setCoordinate([-2.0, 0.0, -10.0])
+        .setIndexMatrix(monkeyIndex)
+        .setLighting(lighting1)
+        .setRotater(rotater1)
+        .setAnimator(animatorz)
+        .setUseLighting(false);
+
+	macbookModel = engine.create3DModel();
+       	macbookModel.setVertexMatrix(laptopData.vertexPositions)
+        .setCoordinate([-1.0, -1.0, -15.0])
+        .setTextureMatrix(laptopData.vertexTextureCoords)
+        .setIndexMatrix(laptopData.indices)
+        .setNormalMatrix(laptopData.vertexNormals)
+        .setLighting(lighting1)
+        .setRotater(rotater1)
+        .setAnimator(animatorz)
+        .setUseLighting(true);
+    }
+    function draw3D(){
+        engine.drawTextureScene();
+    }
+    
+    function rotate(value){
+        
+    	rotater1.setAngle(value);
+        aaa = [0,0,0];
+        if(document.getElementById("x").checked){
+            aaa[0]=1;
+        }
+        if(document.getElementById("y").checked){
+            aaa[1]=1;
+        }
+        if(document.getElementById("z").checked){
+            aaa[2]=1;
+        }
+        rotater1.setDirection(aaa);
+        engine.updateScene();
+    }
+
+	function moveto(value){
+		animator.setSpeed(value);
+        aaa = [0,0,0];
+        if(document.getElementById("s_x").checked){
+            aaa[0]=1;
+        }
+        if(document.getElementById("s_y").checked){
+            aaa[1]=1;
+        }
+        if(document.getElementById("s_z").checked){
+            aaa[2]=1;
+        }
+        animator.setDirection(aaa);
+    }
+
+
+</script>
+</head>
+
+<body onload="init3D();draw3D()">
+
+Rotate:<br>
+Angle:<input id="angle" name="angle" type="range" onchange="rotate(this.value)" min="0" max="360" step="1" value="0">
+<input id="x" type="checkbox" checked />
+<label for="x">X</label>
+<input id="y" type="checkbox" checked />
+<label for="y">Y</label>
+<input id="z" type="checkbox" checked />
+<label for="z">Z</label>
+<br>
+move:<br>
+speed:<input id="speed" name="speed" type="range" onchange="moveto(this.value)" min="-100" max="100" step="1" value="0">
+<input id="s_x" type="checkbox" checked />
+<label for="s_x">X</label>
+<input id="s_y" type="checkbox" checked />
+<label for="s_y">Y</label>
+<input id="s_z" type="checkbox" checked />
+<label for="s_z">Z</label>
+<input id="start" type="checkbox" checked onchange="javascript:engine.enableAnimation(this.checked);"/>
+<label for="start">start</label>
+<br>
+
+<canvas id="canvas" style="border:none;background-color:#000" width="600" height=400></canvas>
+
+</body>
+</html>
