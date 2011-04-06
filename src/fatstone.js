@@ -39,6 +39,10 @@ YCEngine3D.prototype = {
 	createAnimator : function(speed, reverse){
 		return new YCAnimator(this._getNewId(), speed, reverse);
 	},
+	createCamera : function(coordinate, rotation){
+        this.camera = new YCCamera(coordinate, rotation);
+        return this.camera;
+	},
     remove3DModel : function(m){
 		if(!m instanceof YC3DModel){
 			throw "Can't remove no-YC3DModel object ";
@@ -97,8 +101,9 @@ YCEngine3D.prototype = {
             if(this.models[mId] instanceof YC3DModel){
                 loginfo("-----------Draw Model@ "+mId+" ------------------");
                 this.models[mId].iterater(this.__getCurrentCount());
-                //handler moving
                 var coord;
+                var rotation;
+                //handler moving
                 if(!this.models[mId].lastCoordinate){
                     coord = this.models[mId].coordinate;
                 }else{
@@ -108,9 +113,7 @@ YCEngine3D.prototype = {
                     coord = this.animatoerHandler.move(this.models[mId], coord);
                 }
                 this.models[mId].lastCoordinate = coord;
-                coordMatrix = Matrix.Translation($V([coord[0], coord[1], coord[2]])).ensure4x4();
                 // handler rotation
-                var rotation;
                 if(this.models[mId].rotater){
                     if(this.models[mId].lastRotation){
                         rotation = this.models[mId].lastRotation;
@@ -119,6 +122,16 @@ YCEngine3D.prototype = {
                     }
                     rotation = this.animatoerHandler.rotate(this.models[mId], rotation);
                     this.models[mId].lastRotation = rotation;
+                }
+                //handler camera
+                if(this.camera){
+                	coord = this.camera.getNewCoordinate(coord);
+                	rotation = this.camera.getRotation(rotation);
+                }
+                if(coord&&coord.length==3){
+                	coordMatrix = Matrix.Translation($V([coord[0], coord[1], coord[2]])).ensure4x4();
+                }
+                if(rotation){
                     coordMatrix = coordMatrix.x(rotation);
                 }
                 this.mvMatrix = coordMatrix;
@@ -164,6 +177,7 @@ YCEngine3D.prototype = {
         this.glHandler = new YCWebGlHandler(this);
         this.shaderHandler = new YCShaderHandler(this);
         this.animatoerHandler = new YCAnimatorHandler(this);
+        
         
         this.perspective = config&&config.perspective?config.perspective:[45, this.glHandler.viewportWidth/this.glHandler.viewportHeight, 5.1,100.0];
         
@@ -295,34 +309,34 @@ YC3DModel.prototype = {
 		this.lastCount = currentCount;
     }
 };
-
-function YCTransformHander(engine){
-    if(!engine||!engine instanceof YCEngine3D) throw "YCTransformHander must have a engine object to initiate"
-	this.engine = engine;
-}
-
-YCTransformHander.prototype = {
-	rotate : function(model){
-        if(!this.engine.mvMatrix){
-            this.engine.mvMatrix = this.loadIdentity();
-        }
-	    var arad = this.ang * Math.PI / 180.0;
-	    var m = Matrix.Rotation(arad, $V([this.dirc[0], this.dirc[1], this.dirc[2]])).ensure4x4();
-	    this.engine.mvMatrix = this.engine.mvMatrix.x(m);
-		return this;
-	},
-	move : function(model, v){
-	    if(!this.engine.mvMatrix){
-	        this.engine.mvMatrix = this.loadIdentity();
-	    }
-        m= Matrix.Translation($V([v[0], v[1], v[2]])).ensure4x4();
-        this.engine.mvMatrix = this.engine.mvMatrix.x(m);
-		return this;
-	},
-	loadIdentity : function(){
-        return Matrix.I(4);
-    }
-}
+//
+//function YCTransformHander(engine){
+//    if(!engine||!engine instanceof YCEngine3D) throw "YCTransformHander must have a engine object to initiate"
+//	this.engine = engine;
+//}
+//
+//YCTransformHander.prototype = {
+//	rotate : function(model){
+//        if(!this.engine.mvMatrix){
+//            this.engine.mvMatrix = this.loadIdentity();
+//        }
+//	    var arad = this.ang * Math.PI / 180.0;
+//	    var m = Matrix.Rotation(arad, $V([this.dirc[0], this.dirc[1], this.dirc[2]])).ensure4x4();
+//	    this.engine.mvMatrix = this.engine.mvMatrix.x(m);
+//		return this;
+//	},
+//	move : function(model, v){
+//	    if(!this.engine.mvMatrix){
+//	        this.engine.mvMatrix = this.loadIdentity();
+//	    }
+//        m= Matrix.Translation($V([v[0], v[1], v[2]])).ensure4x4();
+//        this.engine.mvMatrix = this.engine.mvMatrix.x(m);
+//		return this;
+//	},
+//	loadIdentity : function(){
+//        return Matrix.I(4);
+//    }
+//}
 
 function YCShaderHandler(engine){
     if(!engine||!engine instanceof YCEngine3D) throw "YCShaderHandler must have a engine object to initiate"
@@ -833,7 +847,6 @@ YCShaderFieldMapHandler.prototype = {
     }
 }
 
-
 function Counter(rate){
 	this.count = 0;
 	this.rate = rate?rate:20;
@@ -843,5 +856,40 @@ function Counter(rate){
 Counter.prototype = {
 	add : function(){
 		this.count ++ ;
+	}
+}
+
+function YCCamera(coordinate, rotation){
+	this.coordinate = coordinate;
+	this.rotation = rotation;
+}
+
+YCCamera.prototype = {
+	forward : function(){
+		
+	},
+	backward : function(){
+		
+	},
+	turnLeft : function(){
+		
+	},
+	turnRight : function(){
+		
+	},
+	getNewCoordinate : function(coord){
+		v =[];
+		v[0] = coord[0]-this.coordinate[0];
+		v[1] = coord[1]-this.coordinate[1];
+		v[2] = coord[2]-this.coordinate[2];
+		return v;
+	},
+	getRotation : function(rotation){
+        if(this.rotation.ang == 0) return  null;
+        if(!this.rotation instanceof YCRotater){
+            throw "rotation must be a YCRotater object";
+        }
+        m = Matrix.Rotation(-this.rotation.ang, $V([this.rotation.dirc[0], this.rotation.dirc[1], this.rotation.dirc[2]])).ensure4x4().x(rotation);
+        return m;
 	}
 }
