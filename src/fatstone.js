@@ -126,7 +126,7 @@ YCEngine3D.prototype = {
                 //handler camera
                 if(this.camera){
                 	coord = this.camera.getNewCoordinate(coord);
-                	rotation = this.camera.getRotation(rotation);
+                    rotation = this.camera.getRotation(rotation);
                 }
                 if(coord&&coord.length==3){
                 	coordMatrix = Matrix.Translation($V([coord[0], coord[1], coord[2]])).ensure4x4();
@@ -837,7 +837,7 @@ YCShaderFieldMapHandler.prototype = {
                 uAmbientColor :(config&&config.uAmbientColor)?config.uAmbientColor:"uAmbientColor",
                 uLightingDirection : (config&&config.uLightingDirection)?config.uLightingDirection:"uLightingDirection",
                 uDirectionalColor : (config&&config.uDirectionalColor)?config.uDirectionalColor:"uDirectionalColor",
-                                
+                        
                 uNMatrix : (config&&config.uNMatrix)?config.uNMatrix:"uNMatrix",
                 uSampler : (config&&config.uSampler)?config.uSampler:"uSampler",
                 
@@ -865,8 +865,8 @@ function YCCamera(coordinate, rotation){
 }
 
 YCCamera.prototype = {
-	forward : function(){
-		
+	forward : function(v){
+        this.coordinate[2] += v;
 	},
 	backward : function(){
 		
@@ -877,6 +877,9 @@ YCCamera.prototype = {
 	turnRight : function(){
 		
 	},
+	setAnimator : function(animator){
+	    this.animator = animator;
+	},
 	getNewCoordinate : function(coord){
 		v =[];
 		v[0] = coord[0]-this.coordinate[0];
@@ -885,11 +888,14 @@ YCCamera.prototype = {
 		return v;
 	},
 	getRotation : function(rotation){
-        if(this.rotation.ang == 0) return  null;
-        if(!this.rotation instanceof YCRotater){
-            throw "rotation must be a YCRotater object";
-        }
-        m = Matrix.Rotation(-this.rotation.ang, $V([this.rotation.dirc[0], this.rotation.dirc[1], this.rotation.dirc[2]])).ensure4x4().x(rotation);
-        return m;
+        m = Matrix.Rotation(-this.rotation.ang, $V([this.rotation.dirc[0], this.rotation.dirc[1], this.rotation.dirc[2]])).ensure4x4();
+	    if(rotation){
+            if(this.rotation.ang == 0) return  null;
+            if(!this.rotation instanceof YCRotater){
+                throw "rotation must be a YCRotater object";
+            }
+            m = m.x(rotation)
+	    }
+	    return m;
 	}
 }

@@ -80,93 +80,58 @@
         engine = new YCEngine3D("canvas");
         engine.enableAnimation(true);
         
-        rotater1 = engine.createRotater(10,[0.0,0.0,1]);
-        rotater2 = engine.createRotater(50,[0.0,0.0,1]);
+        rotater2 = engine.createRotater(50,[1.0,1.0,1.0]);
 
         animatorz = engine.createAnimator([0.0, 0.0, 0.001]);
         animatorx = engine.createAnimator([0.002, 0.0, 0.0]);
         animatory = engine.createAnimator([0.0, -0.001, 0.0]);
+        animator = engine.createAnimator([0.0, -0.001, 0.0]);
 
-        engine.createCamera([-3.0, -3.0, -3.0],rotater2);
+        camera = engine.createCamera([-3.0, -3.0, -3.0],rotater2);
 
         triangleModel = engine.create3DModel();
         triangleModel.setVertexMatrix(triangleMesh)
         .setColorMatrix(triangleColor)
-        .setCoordinate(triangleCoordinate)
-        .setRotater(rotater1);
+        .setCoordinate(triangleCoordinate);
 
         cubeModel = engine.create3DModel();
         cubeModel.setVertexMatrix(simpleCubeVertex)
         .setColorMatrix(simpleCubeColors)
         .setIndexMatrix(simpleCubeIndices)
-        .setCoordinate(simpleCubeCoordinate)
-        .setRotater(rotater1);
+        .setCoordinate(simpleCubeCoordinate);
         
         monkeyModel = engine.create3DModel();
         monkeyModel.setVertexMatrix(monkeyVertex)
-        .setCoordinate([-2.0, 0.0, -10.0])
-        .setIndexMatrix(monkeyIndex)
-        .setRotater(rotater1);
+        .setCoordinate([-4.0, -3.0, -10.0])
+        .setIndexMatrix(monkeyIndex);
     }
     function draw3D(){
         engine.drawScene();
     }
     
-    function rotate(value){
-        
-    	rotater1.setAngle(value);
-        aaa = [0,0,0];
-        if(document.getElementById("x").checked){
-            aaa[0]=1;
+    function keypress(evt){
+        speed = 1;
+        switch(evt.keyCode){
+            case 37 :
+                rotater2.setAngle((rotater2.ang+2));
+                break;
+            case 38 :
+                camera.forward(2);
+                break;
+            case 39 :
+                rotater2.setAngle((rotater2.ang-2));
+                break;
+            case 40 :
+                camera.forward(-2);
+                break;
         }
-        if(document.getElementById("y").checked){
-            aaa[1]=1;
-        }
-        if(document.getElementById("z").checked){
-            aaa[2]=1;
-        }
-        rotater1.setDirection(aaa);
-        engine.updateScene();
     }
-
-	function moveto(value){
-		animator.setSpeed(value);
-        aaa = [0,0,0];
-        if(document.getElementById("s_x").checked){
-            aaa[0]=1;
-        }
-        if(document.getElementById("s_y").checked){
-            aaa[1]=1;
-        }
-        if(document.getElementById("s_z").checked){
-            aaa[2]=1;
-        }
-        animator.setDirection(aaa);
-    }
-
 
 </script>
 </head>
 
-<body onload="init3D();draw3D()">
+<body onload="init3D();draw3D()" onkeypress="javascript:keypress(event)">
 
-Rotate:<br>
-Angle:<input id="angle" name="angle" type="range" onchange="rotate(this.value)" min="0" max="360" step="1" value="0">
-<input id="x" type="checkbox" checked />
-<label for="x">X</label>
-<input id="y" type="checkbox" checked />
-<label for="y">Y</label>
-<input id="z" type="checkbox" checked />
-<label for="z">Z</label>
-<br>
-move:<br>
-speed:<input id="speed" name="speed" type="range" onchange="moveto(this.value)" min="-100" max="100" step="1" value="0">
-<input id="s_x" type="checkbox" checked />
-<label for="s_x">X</label>
-<input id="s_y" type="checkbox" checked />
-<label for="s_y">Y</label>
-<input id="s_z" type="checkbox" checked />
-<label for="s_z">Z</label>
 <input id="start" type="checkbox" checked onchange="javascript:engine.enableAnimation(this.checked);"/>
 <label for="start">start</label>
 <br>
