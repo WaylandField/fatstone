@@ -125,7 +125,6 @@ YCEngine3D.prototype = {
                 }
                 //handler camera
                 if(this.camera){
-                	coord = this.camera.getNewCoordinate(coord);
                     rotation = this.camera.getRotation(rotation);
                 }
                 if(coord&&coord.length==3){
@@ -133,6 +132,13 @@ YCEngine3D.prototype = {
                 }
                 if(rotation){
                     coordMatrix = coordMatrix.x(rotation);
+                }
+                //handler camera
+                if(this.camera){
+                	coord = this.camera.getNewCoordinate(coord);
+                }
+                if(coord&&coord.length==3){
+                	coordMatrix = coordMatrix.x(Matrix.Translation($V([coord[0], coord[1], coord[2]])).ensure4x4());
                 }
                 this.mvMatrix = coordMatrix;
                 
@@ -179,7 +185,7 @@ YCEngine3D.prototype = {
         this.animatoerHandler = new YCAnimatorHandler(this);
         
         
-        this.perspective = config&&config.perspective?config.perspective:[45, this.glHandler.viewportWidth/this.glHandler.viewportHeight, 5.1,100.0];
+        this.perspective = config&&config.perspective?config.perspective:[45, this.glHandler.viewportWidth/this.glHandler.viewportHeight, 5.1,200.0];
         
 
     },
@@ -866,7 +872,7 @@ function YCCamera(coordinate, rotation){
 
 YCCamera.prototype = {
 	forward : function(v){
-        this.coordinate[2] += v;
+        this.coordinate[2] -= v;
 	},
 	backward : function(){
 		

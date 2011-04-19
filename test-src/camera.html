@@ -3,6 +3,7 @@
 <script type="text/javascript" src="../lib/sylvester.js"></script>
 <script type="text/javascript" src="../src/fatstone.js"></script>
 <script type="text/javascript" src="../lib/glUtils.js"></script>
+<script type="text/javascript" src="../lib/glMatrix-0.9.5.min.js"></script>
 <script type="text/javascript" src="data.js"></script>
 
 <script id="shader-fs" type="x-shader/x-fragment">
@@ -80,7 +81,7 @@
         engine = new YCEngine3D("canvas");
         engine.enableAnimation(true);
         
-        rotater2 = engine.createRotater(50,[1.0,1.0,1.0]);
+        rotater2 = engine.createRotater(50,[0.0,1.0,0.0]);
 
         animatorz = engine.createAnimator([0.0, 0.0, 0.001]);
         animatorx = engine.createAnimator([0.002, 0.0, 0.0]);
@@ -89,20 +90,10 @@
 
         camera = engine.createCamera([-3.0, -3.0, -3.0],rotater2);
 
-        triangleModel = engine.create3DModel();
-        triangleModel.setVertexMatrix(triangleMesh)
-        .setColorMatrix(triangleColor)
-        .setCoordinate(triangleCoordinate);
-
-        cubeModel = engine.create3DModel();
-        cubeModel.setVertexMatrix(simpleCubeVertex)
-        .setColorMatrix(simpleCubeColors)
-        .setIndexMatrix(simpleCubeIndices)
-        .setCoordinate(simpleCubeCoordinate);
         
         monkeyModel = engine.create3DModel();
         monkeyModel.setVertexMatrix(monkeyVertex)
-        .setCoordinate([-4.0, -3.0, -10.0])
+        .setCoordinate([-4.0, -3.0, -20.0])
         .setIndexMatrix(monkeyIndex);
     }
     function draw3D(){
@@ -113,13 +104,13 @@
         speed = 1;
         switch(evt.keyCode){
             case 37 :
-                rotater2.setAngle((rotater2.ang+2));
+                rotater2.setAngle((rotater2.ang+0.1));
                 break;
             case 38 :
                 camera.forward(2);
                 break;
             case 39 :
-                rotater2.setAngle((rotater2.ang-2));
+                rotater2.setAngle((rotater2.ang-0.1));
                 break;
             case 40 :
                 camera.forward(-2);
